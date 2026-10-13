@@ -23,6 +23,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         {f("Monthly savings target (RM)", "savings_target", p?.savings_target)}
         {f("Minimum emergency reserve (RM)", "emergency_reserve", p?.emergency_reserve)}
         {f("Other reserved funds (RM)", "other_reserved", p?.other_reserved)}
+        {f("Budget warning threshold (% of budget used)", "warn_threshold_pct", p?.warn_threshold_pct ?? 75, "1")}
         <button className="rounded bg-emerald-600 p-2 text-white sm:col-span-2">Save settings</button>
       </form>
       <h2 className="mb-2 text-lg font-semibold">Accounts</h2>

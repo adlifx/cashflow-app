@@ -61,7 +61,7 @@ export async function deleteIncome(form: FormData) {
 export async function saveSettings(form: FormData) {
   const n = z.coerce.number().min(0).max(10_000_000);
   const p = z.object({ expected_salary: n, savings_target: n, emergency_reserve: n, other_reserved: n,
-    salary_day: z.coerce.number().int().min(1).max(31) }).safeParse(Object.fromEntries(form));
+    salary_day: z.coerce.number().int().min(1).max(31), warn_threshold_pct: z.coerce.number().int().min(1).max(100) }).safeParse(Object.fromEntries(form));
   if (!p.success) return fail("/settings", p.error.issues[0].message);
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();

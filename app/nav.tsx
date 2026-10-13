@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { logout } from "./login/actions";
-const LINKS: [string, string][] = [["/dashboard", "Dashboard"], ["/transactions", "Transactions"], ["/income", "Income"], ["/debts", "Debts"], ["/commitments", "Commitments"], ["/settings", "Settings"]];
+const LINKS: [string, string][] = [["/dashboard", "Dashboard"], ["/transactions", "Transactions"], ["/income", "Income"], ["/budgets", "Budgets"], ["/debts", "Debts"], ["/commitments", "Commitments"], ["/settings", "Settings"]];
 export default function Nav({ err, ok }: { err?: string; ok?: boolean }) {
   return (
     <header className="mb-6">
