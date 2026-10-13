@@ -1,11 +1,14 @@
 "use client";
 import { useActionState } from "react";
 import { authAction } from "./actions";
+import Mascot from "../mascot";
 export default function Login() {
   const [state, action, pending] = useActionState(authAction, undefined);
   return (
     <main className="mx-auto mt-24 max-w-sm rounded-xl bg-white p-6 shadow dark:bg-slate-900">
-      <h1 className="mb-4 text-xl font-semibold">Cash Flow</h1>
+      <div className="mb-2 flex justify-center"><Mascot size={110} /></div>
+      <h1 className="mb-1 text-center text-3xl">Penny</h1>
+      <p className="mb-4 text-center text-sm opacity-70">Make your salary last until payday.</p>
       <form action={action} className="space-y-3">
         <input name="email" type="email" required placeholder="Email" className="w-full rounded border p-2 dark:bg-slate-800" />
         <input name="password" type="password" required minLength={8} placeholder="Password (8+ chars)" className="w-full rounded border p-2 dark:bg-slate-800" />

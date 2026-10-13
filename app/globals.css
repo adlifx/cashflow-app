@@ -1,1 +1,35 @@
 @tailwind base; @tailwind components; @tailwind utilities;
+
+/* Cartoon theme: thick outlines, hard offset shadows, rounded shapes, bouncy buttons. Colours switch automatically in dark mode. */
+:root { --ink: #1e1b4b; --paper: #fff4c2; --dots: #fbd34d88; --pop: #1e1b4b; }
+@media (prefers-color-scheme: dark) { :root { --ink: #a5b4fc; --paper: #1e1b4b; --dots: #4338ca88; --pop: #000; } }
+
+body {
+  font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Baloo 2", "Segoe UI", "Comic Sans MS", "Chalkboard SE", system-ui, sans-serif;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dots) 2px, transparent 2.5px);
+  background-size: 24px 24px;
+}
+h1, h2 { font-weight: 900; letter-spacing: -0.01em; }
+
+.shadow { border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--pop); border-radius: 1.1rem; }
+
+input:not([type="checkbox"]), select { border: 2px solid var(--ink) !important; border-radius: 0.8rem !important; }
+input:not([type="checkbox"]):focus, select:focus { outline: 3px solid #fbbf24; outline-offset: 1px; }
+
+button { font-weight: 800; border: 2px solid var(--ink); border-radius: 0.8rem; box-shadow: 2px 2px 0 var(--pop); transition: transform 0.08s, box-shadow 0.08s; }
+button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--pop); }
+button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--pop); }
+button.text-red-600 { border: 0; box-shadow: none; transform: none; font-weight: 700; }
+button:disabled { opacity: 0.6; }
+
+p[class~="bg-emerald-600"], p[class~="bg-amber-600"], p[class~="bg-red-100"], p[class~="bg-amber-100"], p[class~="bg-emerald-100"], p[class~="bg-slate-200"] {
+  border: 2.5px solid var(--ink); border-radius: 1rem; box-shadow: 3px 3px 0 var(--pop);
+}
+nav { border-bottom: 3px dashed var(--ink); }
+nav a:hover { transform: rotate(-2deg); }
+details > summary { font-weight: 800; }
+
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+.bob { animation: bob 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .bob { animation: none; } button, nav a { transition: none; } }

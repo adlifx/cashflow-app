@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import Nav from "../nav";
+import Mascot from "../mascot";
 import { dailyLimit, daysUntil, formatRM, nextSalaryDate, safeToSpend } from "@/lib/finance/calc";
 import { fetchAll } from "@/lib/supabase/fetch-all";
 import { klNow, klYmd, ymd } from "@/lib/kl";
@@ -82,7 +83,8 @@ export default async function Dashboard() {
     <main className="mx-auto max-w-4xl p-6">
       <Nav />
       <h1 className="mb-4 text-2xl font-semibold">Dashboard</h1>
-      <p className={`mb-3 rounded-xl p-4 text-white ${bad ? "bg-amber-600" : "bg-emerald-600"}`}>
+      <p className={`mb-3 flex items-center gap-3 rounded-xl p-4 text-white ${bad ? "bg-amber-600" : "bg-emerald-600"}`}>
+        <Mascot size={52} mood={bad ? "worried" : "happy"} />
         {bad ? `Your reserves and savings target currently exceed your cash by ${formatRM(Math.abs(safe))}. Review non-essential spending first.`
              : `You can safely spend ${formatRM(limit)} per day until your next salary (${days} day${days > 1 ? "s" : ""}).`}
       </p>
