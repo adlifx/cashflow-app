@@ -33,3 +33,22 @@ details > summary { font-weight: 800; }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
 .bob { animation: bob 2.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .bob { animation: none; } button, nav a { transition: none; } }
+
+/* Mobile friendliness: 16px inputs (stops iOS zoom), bigger touch targets, bottom tab bar */
+input:not([type="checkbox"]), select { font-size: 16px; min-height: 2.75rem; }
+button { min-height: 2.5rem; }
+button.text-red-600 { min-height: 2.25rem; padding: 0 0.5rem; }
+summary { list-style: none; } summary::-webkit-details-marker { display: none; }
+nav { border-bottom: 3px dashed var(--ink); }
+.tabbar { background: var(--paper); border-top: 3px solid var(--ink); padding-bottom: env(safe-area-inset-bottom); }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 3.5rem; margin: 0.2rem; font-size: 0.7rem; font-weight: 800; border-radius: 0.8rem; }
+.tab.active { background: #fbbf24; color: #1e1b4b; }
+.sheet { background: var(--paper); border: 2.5px solid var(--ink); border-radius: 1rem; box-shadow: 4px 4px 0 var(--pop); }
+.sheet a, .sheet button { display: block; width: 100%; padding: 0.65rem 0.8rem; text-align: left; font-weight: 800; border-radius: 0.6rem; }
+.sheet button { border: 0; box-shadow: none; transform: none; min-height: 0; }
+.sheet a.active { background: #fbbf24; color: #1e1b4b; }
+@media (max-width: 767px) {
+  main { padding: 1rem 1rem 7rem !important; }
+  h1 { font-size: 1.5rem; }
+  li.flex { flex-wrap: wrap; }
+}
