@@ -18,10 +18,21 @@ export async function addExpense(form: FormData) {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
+  let receipt_path: string | null = null;
+  const file = form.get("receipt");
+  if (file instanceof File && file.size > 0) {
+    const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as Record<string, string>)[file.type];
+    if (!ext) return fail("/transactions", "Receipt must be a JPG, PNG or WebP image.");
+    if (file.size > 3 * 1024 * 1024) return fail("/transactions", "Receipt must be 3 MB or smaller.");
+    const path = `${user!.id}/${p.data.request_id}.${ext}`;
+    const { error: upErr } = await sb.storage.from("receipts").upload(path, file, { contentType: file.type });
+    if (upErr && !/exists|duplicate/i.test(upErr.message)) return fail("/transactions", `Receipt upload failed: ${upErr.message}`);
+    receipt_path = path;
+  }
   const { error } = await sb.from("expenses").insert({ user_id: user!.id, description: p.data.description, category: p.data.category,
     amount: p.data.amount, payment_method: p.data.payment_method, spent_at: withTz(p.data.spent), merchant: p.data.merchant || null,
     notes: p.data.notes || null, is_essential: form.get("essential") === "on", is_recurring: form.get("recurring") === "on",
-    client_request_id: p.data.request_id });
+    client_request_id: p.data.request_id, receipt_path });
   if (error && error.code !== "23505") return fail("/transactions", error.message); // 23505 = duplicate submit, already saved
   refresh(); redirect("/transactions");
 }
@@ -29,10 +40,11 @@ export async function addExpense(form: FormData) {
 export async function deleteExpense(form: FormData) {
   const id = z.string().uuid().parse(form.get("id"));
   const sb = await supabaseServer();
-  const { data: row } = await sb.from("expenses").select("debt_id, commitment_occurrence_id").eq("id", id).single();
+  const { data: row } = await sb.from("expenses").select("debt_id, commitment_occurrence_id, receipt_path").eq("id", id).single();
   if (row?.debt_id || row?.commitment_occurrence_id) return fail("/transactions", "This record is linked to a debt or commitment. Remove it from there so balances stay correct.");
   const { error } = await sb.from("expenses").delete().eq("id", id);
   if (error) return fail("/transactions", error.message);
+  if (row?.receipt_path) await sb.storage.from("receipts").remove([row.receipt_path]);
   refresh(); redirect("/transactions");
 }
 

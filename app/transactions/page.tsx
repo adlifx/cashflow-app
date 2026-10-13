@@ -21,6 +21,9 @@ export default async function Transactions({ searchParams }: { searchParams: Pro
   q = sort === "amount_desc" ? q.order("amount", { ascending: false }) : sort === "date_asc" ? q.order("spent_at", { ascending: true }) : q.order("spent_at", { ascending: false });
   const { data } = await q;
   const rows = data ?? [];
+  const paths = rows.map((r) => r.receipt_path).filter(Boolean) as string[];
+  const signed: Record<string, string> = {};
+  if (paths.length) { const { data: s } = await sb.storage.from("receipts").createSignedUrls(paths, 3600); (s ?? []).forEach((x) => { if (x.path && x.signedUrl) signed[x.path] = x.signedUrl; }); }
   const total = rows.reduce((s, r) => s + Math.round(Number(r.amount) * 100), 0) / 100;
   const requestId = crypto.randomUUID();
   return (
@@ -38,6 +41,7 @@ export default async function Transactions({ searchParams }: { searchParams: Pro
         <input name="spent" type="datetime-local" required defaultValue={klDateTimeLocal()} className={input} />
         <input name="merchant" placeholder="Merchant or shop (optional)" className={input} />
         <input name="notes" placeholder="Notes (optional)" className={`${input} sm:col-span-2`} />
+        <label className="text-sm sm:col-span-2">Receipt image (optional, JPG/PNG/WebP up to 3 MB)<input name="receipt" type="file" accept="image/jpeg,image/png,image/webp" className={input} /></label>
         <label className="text-sm"><input type="checkbox" name="essential" defaultChecked={sp.e !== "0"} /> Essential</label>
         <label className="text-sm"><input type="checkbox" name="recurring" /> Recurring</label>
         <button className="rounded bg-emerald-600 p-2 text-white sm:col-span-2">Add expense</button>
@@ -53,7 +57,7 @@ export default async function Transactions({ searchParams }: { searchParams: Pro
         <ul className="divide-y rounded-xl bg-white shadow dark:divide-slate-800 dark:bg-slate-900">{rows.map((r) => (
           <li key={r.id} className="flex items-center justify-between gap-3 p-3">
             <div><div className="font-medium">{r.description}{!r.is_essential && <span className="ml-2 rounded bg-amber-100 px-1 text-xs text-amber-800">non-essential</span>}</div>
-              <div className="text-xs opacity-60">{new Date(r.spent_at).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", dateStyle: "medium", timeStyle: "short" })} · {catName(r.category)} · {r.payment_method.replace("_", " ")}{r.merchant ? ` · ${r.merchant}` : ""}</div></div>
+              <div className="text-xs opacity-60">{new Date(r.spent_at).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", dateStyle: "medium", timeStyle: "short" })} · {catName(r.category)} · {r.payment_method.replace("_", " ")}{r.merchant ? ` · ${r.merchant}` : ""}{r.receipt_path && signed[r.receipt_path] && <> · <a href={signed[r.receipt_path]} target="_blank" rel="noopener noreferrer" className="underline">receipt</a></>}</div></div>
             <div className="flex items-center gap-3"><span className="font-semibold">{formatRM(Number(r.amount))}</span>
               <form action={deleteExpense}><input type="hidden" name="id" value={r.id} /><ConfirmButton /></form></div>
           </li>))}</ul>)}

@@ -1,7 +1,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import Nav from "../nav";
 import { dailyLimit, daysUntil, formatRM, nextSalaryDate, safeToSpend } from "@/lib/finance/calc";
-import { cashBalance } from "@/lib/finance/balance";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 import { klNow, klYmd, ymd } from "@/lib/kl";
 import { dueIn } from "@/lib/dates";
 import { CATEGORIES } from "@/lib/categories";
@@ -15,15 +15,17 @@ export default async function Dashboard() {
   const todayStr = ymd(today), monthStr = todayStr.slice(0, 7);
   const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
   const weekStr = ymd(mon);
+  const d7 = ymd(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6));
+  const since = [weekStr, d7, `${monthStr}-01`].sort()[0];
   const [{ data: p }, { data: acc }, { data: exp }, { data: inc }, { data: debts }, { data: occ }, { data: reps }, { data: cms }, { data: buds }] = await Promise.all([
 
     sb.from("profiles").select("*").single(),
-    sb.from("accounts").select("opening_balance").eq("is_active", true),
-    sb.from("expenses").select("amount, payment_method, spent_at, category, is_essential"),
-    sb.from("income").select("amount, income_date, status"),
+    sb.rpc("get_cash_balance"),
+    fetchAll((a, b) => sb.from("expenses").select("amount, payment_method, spent_at, category, is_essential").gte("spent_at", `${since}T00:00:00+08:00`).order("id").range(a, b)).then((data) => ({ data })),
+    sb.from("income").select("amount, income_date, status").gte("income_date", `${monthStr}-01`).limit(1000),
     sb.from("debts").select("id, name, current_balance, min_payment, due_day"),
     sb.from("commitment_occurrences").select("amount, due_date, commitments(name)").neq("status", "paid"),
-    sb.from("debt_repayments").select("debt_id, amount, paid_on"),
+    sb.from("debt_repayments").select("debt_id, amount, paid_on").gte("paid_on", `${monthStr}-01`).limit(1000),
     sb.from("commitments").select("debt_id").eq("is_active", true),
     sb.from("budgets").select("category, amount").eq("period", `${monthStr}-01`),
   ]);
@@ -33,7 +35,7 @@ export default async function Dashboard() {
   const received = (inc ?? []).filter((i) => i.status === "received");
   const incomeMonth = received.filter((i) => String(i.income_date).startsWith(monthStr)).reduce((s, i) => s + Math.round(Number(i.amount) * 100), 0) / 100;
   const outstanding = (debts ?? []).reduce((s, d) => s + Math.round(Number(d.current_balance) * 100), 0) / 100;
-  const cash = cashBalance({ openingBalances: (acc ?? []).map((a) => Number(a.opening_balance)), receivedIncome: received.map((i) => Number(i.amount)), expenses });
+  const cash = Number(acc ?? 0); // computed in the database by get_cash_balance()
   const nextPay = nextSalaryDate(today, p?.salary_day ?? 25), nextPayStr = ymd(nextPay);
   const unpaidCommitments = (occ ?? []).filter((o) => o.due_date < nextPayStr).reduce((s, o) => s + Math.round(Number(o.amount) * 100), 0) / 100;
   const linked = new Set((cms ?? []).map((c) => c.debt_id).filter(Boolean));

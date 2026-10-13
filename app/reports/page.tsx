@@ -7,6 +7,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { formatRM } from "@/lib/finance/calc";
 import { buildReport, daysInMonth, shiftMonth } from "@/lib/finance/report";
 import { klNow, klYmd, ymd } from "@/lib/kl";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 
 export const dynamic = "force-dynamic";
 const name = (k: string) => CATEGORIES.find((c) => c[0] === k)?.[1] ?? k;
@@ -18,12 +19,12 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
   const start = shiftMonth(m, -5), end = shiftMonth(m, 1);
   const sb = await supabaseServer();
   const [{ data: exp }, { data: inc }, { data: reps }, { data: adjs }, { data: debts }, { data: cons }, { data: buds }, { data: prof }] = await Promise.all([
-    sb.from("expenses").select("amount, spent_at, category, is_essential, is_recurring, debt_id, commitment_occurrence_id").gte("spent_at", `${start}-01T00:00:00+08:00`).lt("spent_at", `${end}-01T00:00:00+08:00`),
-    sb.from("income").select("amount, income_date").eq("status", "received").gte("income_date", `${start}-01`).lt("income_date", `${end}-01`),
-    sb.from("debt_repayments").select("amount, paid_on"),
-    sb.from("debt_adjustments").select("old_balance, new_balance, created_at"),
+    fetchAll((a, b) => sb.from("expenses").select("amount, spent_at, category, is_essential, is_recurring, debt_id, commitment_occurrence_id").gte("spent_at", `${start}-01T00:00:00+08:00`).lt("spent_at", `${end}-01T00:00:00+08:00`).order("id").range(a, b)).then((data) => ({ data })),
+    fetchAll((a, b) => sb.from("income").select("amount, income_date").eq("status", "received").gte("income_date", `${start}-01`).lt("income_date", `${end}-01`).order("id").range(a, b)).then((data) => ({ data })),
+    fetchAll((a, b) => sb.from("debt_repayments").select("amount, paid_on").order("id").range(a, b)).then((data) => ({ data })),
+    fetchAll((a, b) => sb.from("debt_adjustments").select("old_balance, new_balance, created_at").order("id").range(a, b)).then((data) => ({ data })),
     sb.from("debts").select("current_balance, created_at"),
-    sb.from("savings_contributions").select("amount, contributed_on"),
+    fetchAll((a, b) => sb.from("savings_contributions").select("amount, contributed_on").order("id").range(a, b)).then((data) => ({ data })),
     sb.from("budgets").select("category, amount").eq("period", `${m}-01`),
     sb.from("profiles").select("savings_target, expected_salary").single(),
   ]);
