@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { logout } from "./login/actions";
-const LINKS: [string, string][] = [["/dashboard", "Dashboard"], ["/transactions", "Transactions"], ["/income", "Income"], ["/budgets", "Budgets"], ["/debts", "Debts"], ["/commitments", "Commitments"], ["/settings", "Settings"]];
+const LINKS: [string, string][] = [["/dashboard", "Dashboard"], ["/transactions", "Transactions"], ["/income", "Income"], ["/budgets", "Budgets"], ["/debts", "Debts"], ["/commitments", "Commitments"], ["/goals", "Goals"], ["/calendar", "Calendar"], ["/reports", "Reports"], ["/settings", "Settings"]];
 export default function Nav({ err, ok }: { err?: string; ok?: boolean }) {
   return (
-    <header className="mb-6">
+    <header className="mb-6 print:hidden">
       <nav className="flex flex-wrap items-center gap-2 border-b pb-3 text-sm">
         {LINKS.map(([h, t]) => <Link key={h} href={h} className="rounded px-3 py-1 hover:bg-slate-200 dark:hover:bg-slate-800">{t}</Link>)}
         <form action={logout} className="ml-auto"><button className="rounded border px-3 py-1">Log out</button></form>
